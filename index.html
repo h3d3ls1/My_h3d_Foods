@@ -1,0 +1,1630 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <!-- Viewport con safe areas para Dynamic Island y home bar -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mi Comida">
+  <title>Mi Alimentación</title>
+  <!-- SIN Google Fonts — usamos fuentes del sistema Apple para funcionar en file:// -->
+  <style>
+    /* === RESET + FUENTES DEL SISTEMA === */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Fuentes nativas Apple: SF Pro para texto, SF Mono para números */
+    :root {
+      --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      --font-mono: 'SF Mono', 'Menlo', monospace;
+      /* Colores principales */
+      --bg-deep: #0f172a;
+      --bg-card: #1e293b;
+      --bg-input: #0f172a;
+      --border: #334155;
+      --border-active: rgba(34, 197, 94, 0.4);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --text-bright: #f8fafc;
+      --green: #22c55e;
+      --green-bg: rgba(34, 197, 94, 0.15);
+      --green-bg2: rgba(34, 197, 94, 0.08);
+      --blue: #3b82f6;
+      --blue-light: #60a5fa;
+      --yellow: #eab308;
+      --orange: #f97316;
+      --red: #ef4444;
+      /* Safe areas para iPhone con Dynamic Island */
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+      --sal: env(safe-area-inset-left, 0px);
+      --sar: env(safe-area-inset-right, 0px);
+    }
+
+    body {
+      background: var(--bg-deep);
+      color: #e2e8f0;
+      font-family: var(--font-body);
+      /* Padding con safe areas para Dynamic Island y bordes curvos */
+      padding: calc(12px + var(--sat)) calc(12px + var(--sar)) calc(12px + var(--sab)) calc(12px + var(--sal));
+      /* min-height con dvh para iOS Safari (barra de direcciones dinámica) */
+      min-height: 100dvh;
+      /* Prevenir el bounce de scroll en iOS */
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .wrap {
+      max-width: 420px;
+      margin: 0 auto;
+      padding-bottom: 80px;
+    }
+
+    /* === HEADER === */
+    .header {
+      text-align: center;
+      padding: 12px 0 18px;
+      /* touch-action en todos los elementos interactivos para eliminar delay 300ms */
+      touch-action: manipulation;
+    }
+
+    .header h1 {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      color: var(--text-bright);
+      margin-bottom: 4px;
+      /* Cursor pointer para indicar que se puede hacer doble toque */
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .header p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Feedback visual del doble toque */
+    .header h1.tap-flash {
+      opacity: 0.5;
+      transition: opacity 0.15s;
+    }
+
+    /* === INSTALL BANNER === */
+    .install-banner {
+      background: linear-gradient(135deg, #1e3a5f, var(--bg-card));
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      border: 1px solid #1e3a5f;
+      display: none; /* oculto por defecto, JS lo muestra si procede */
+      align-items: center;
+      gap: 12px;
+      touch-action: manipulation;
+    }
+
+    .install-icon {
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+
+    .install-text h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--blue-light);
+      margin-bottom: 3px;
+    }
+
+    .install-text p {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .install-close {
+      font-size: 20px;
+      color: var(--border);
+      cursor: pointer;
+      flex-shrink: 0;
+      padding: 4px;
+      /* Zona táctil mínima 44x44 (Apple HIG) */
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+    }
+
+    /* === DASHBOARD STICKY === */
+    .dash {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+      position: sticky;
+      /* El top respeta la safe area para no quedar bajo la Dynamic Island */
+      top: calc(8px + var(--sat));
+      z-index: 10;
+    }
+
+    .dash-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .prot-big {
+      font-family: var(--font-mono);
+      font-size: 34px;
+      font-weight: 700;
+      transition: color 0.3s;
+    }
+
+    .prot-unit {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-left: 4px;
+    }
+
+    .side-info {
+      text-align: right;
+    }
+
+    .kcal-val {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .tramos-val {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .bar-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .bar-track {
+      height: 24px;
+      border-radius: 12px;
+      background: var(--bg-deep);
+      border: 1px solid var(--bg-card);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 12px;
+      transition: width 0.5s ease, background 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 8px;
+    }
+
+    .bar-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .dash-msg {
+      font-size: 12px;
+      text-align: center;
+      margin-top: 8px;
+      min-height: 16px;
+    }
+
+    /* === BLOQUES DE COMIDA === */
+    .block {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      margin-bottom: 8px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .block.activo {
+      border-color: var(--border-active);
+      background: linear-gradient(135deg, #1e3a2f, var(--bg-card));
+    }
+
+    /* Cabecera plegable — zona táctil mínima 44px */
+    .blk-hdr {
+      padding: 13px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+      -webkit-user-select: none;
+      min-height: 58px;
+      touch-action: manipulation;
+    }
+
+    .blk-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .blk-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .blk-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .blk-time {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--blue);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .blk-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .blk-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .blk-sel {
+      font-size: 11px;
+      color: var(--green);
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .blk-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+
+    .badge {
+      background: var(--green-bg);
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+
+    .arrow {
+      color: var(--text-muted);
+      font-size: 16px;
+      transition: transform 0.2s;
+      display: inline-block;
+      line-height: 1;
+    }
+
+    .arrow.open {
+      transform: rotate(180deg);
+    }
+
+    /* === PANEL DE OPCIONES (desplegable) === */
+    .opts-panel {
+      padding: 0 12px 12px;
+    }
+
+    .opts-desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    /* Cada opción — zona táctil mínima 44px */
+    .opt {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--bg-card);
+      background: var(--bg-deep);
+      margin-bottom: 6px;
+      cursor: pointer;
+      min-height: 52px;
+      touch-action: manipulation;
+    }
+
+    .opt.sel {
+      background: var(--green-bg2);
+      border-color: var(--border-active);
+    }
+
+    .radio {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1.5px solid #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #fff;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .radio.on {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .opt-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .opt-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #cbd5e1;
+      line-height: 1.3;
+    }
+
+    .opt-name.sel {
+      color: var(--text-primary);
+    }
+
+    .opt-tip {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+
+    .opt-nums {
+      text-align: right;
+      flex-shrink: 0;
+      margin-left: 6px;
+      min-width: 40px;
+    }
+
+    .opt-prot {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .opt-prot.sel {
+      color: var(--green);
+    }
+
+    .opt-kcal {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* === COMIDA PRINCIPAL (sección especial) === */
+    .principal-inner {
+      padding: 0 12px 14px;
+    }
+
+    .principal-desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+
+    .ptype-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    /* Botones tipo proteína — zona táctil 44px */
+    .ptype-btn {
+      padding: 10px 6px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-deep);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      text-align: center;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+      font-family: var(--font-body);
+    }
+
+    .ptype-btn.on {
+      background: rgba(34, 197, 94, 0.1);
+      border-color: var(--border-active);
+      color: var(--green);
+    }
+
+    .slider-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slider-row input[type="range"] {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 8px;
+      border-radius: 4px;
+      background: var(--border);
+      outline: none;
+      touch-action: manipulation;
+    }
+
+    .slider-row input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--green);
+      cursor: pointer;
+    }
+
+    .slider-val {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--green);
+      min-width: 48px;
+      text-align: right;
+    }
+
+    .slider-unit {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    /* === SUPLEMENTOS === */
+    .supps {
+      background: var(--bg-card);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-top: 14px;
+      border: 1px solid #1e3a5f;
+    }
+
+    .supps h3 {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--blue-light);
+      margin-bottom: 10px;
+    }
+
+    .supp-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--bg-deep);
+    }
+
+    .supp-row:last-child {
+      border-bottom: none;
+    }
+
+    .supp-ico {
+      font-size: 18px;
+      width: 28px;
+      text-align: center;
+    }
+
+    .supp-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .supp-when {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* === RESUMEN DEL DÍA === */
+    .summary {
+      background: linear-gradient(135deg, #14532d, var(--bg-card));
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-top: 12px;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .summary h3 {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--green);
+      margin-bottom: 10px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .scard {
+      background: var(--bg-deep);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .scard-num {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .scard-lbl {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .summary-msg {
+      font-size: 12px;
+      color: var(--green);
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    /* === FOOTER === */
+    .footer {
+      text-align: center;
+      padding: 16px 0 8px;
+      border-top: 1px solid var(--bg-card);
+      margin-top: 14px;
+    }
+
+    /* Botón "Nuevo día" — zona táctil 48px */
+    .reset-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 28px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: transparent;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: var(--font-body);
+      min-height: 48px;
+      touch-action: manipulation;
+    }
+
+    .saved-ok {
+      font-size: 11px;
+      color: var(--green);
+      margin-bottom: 10px;
+      min-height: 16px;
+    }
+
+    .footer-note {
+      font-size: 10px;
+      color: var(--border);
+      margin-top: 8px;
+    }
+
+    /* Nota del doble toque */
+    .double-tap-hint {
+      font-size: 10px;
+      color: var(--border);
+      margin-top: 4px;
+    }
+
+    /* === MODAL BOTTOM SHEET === */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-sheet {
+      background: var(--bg-card);
+      border-radius: 20px 20px 0 0;
+      /* Padding inferior respeta la home bar */
+      padding: 24px 20px calc(24px + var(--sab));
+      width: 100%;
+      max-width: 420px;
+      border: 1px solid var(--border);
+    }
+
+    .modal-title {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      color: var(--text-bright);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .modal-msg {
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .modal-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .modal-cancel {
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: transparent;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: var(--font-body);
+      min-height: 48px;
+      touch-action: manipulation;
+    }
+
+    .modal-confirm {
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background: var(--red);
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      font-family: var(--font-body);
+      min-height: 48px;
+      touch-action: manipulation;
+    }
+
+    /* === CONFETI === */
+    @keyframes fall {
+      0% {
+        transform: translateY(0) rotate(0);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+
+    .confetti-p {
+      position: fixed;
+      width: 9px;
+      height: 9px;
+      pointer-events: none;
+      z-index: 200;
+      animation: fall linear forwards;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- === MODAL (fuera del wrap para posición fija) === -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-sheet">
+      <div class="modal-title">Nuevo día</div>
+      <div class="modal-msg">Se borrará el registro de hoy y empezarás desde cero. ¿Confirmas?</div>
+      <div class="modal-btns">
+        <button class="modal-cancel" id="btnModalCancel">Cancelar</button>
+        <button class="modal-confirm" id="btnModalConfirm">Sí, nuevo día</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- HEADER con doble toque para resetear -->
+    <div class="header">
+      <h1 id="titleH1">🥗 MI ALIMENTACIÓN DIARIA</h1>
+      <p id="dateLabel">Cargando...</p>
+    </div>
+
+    <!-- INSTALL BANNER -->
+    <div class="install-banner" id="installBanner">
+      <span class="install-icon">📲</span>
+      <div class="install-text">
+        <h4>Añade a pantalla de inicio</h4>
+        <p>Safari → botón compartir → "Añadir a pantalla de inicio"</p>
+      </div>
+      <span class="install-close" id="installClose">✕</span>
+    </div>
+
+    <!-- DASHBOARD STICKY -->
+    <div class="dash">
+      <div class="dash-row">
+        <div>
+          <span class="prot-big" id="totalProt">0</span>
+          <span class="prot-unit">g proteína</span>
+        </div>
+        <div class="side-info">
+          <div class="kcal-val" id="totalKcal">0 kcal</div>
+          <div class="tramos-val" id="tramosCount">0/7 tramos</div>
+        </div>
+      </div>
+      <div class="bar-labels">
+        <span>0g</span>
+        <span id="targetLbl">🎯 objetivo 130g</span>
+        <span>150g</span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" id="barFill" style="width:0%;background:#ef4444">
+          <span class="bar-lbl" id="barLbl" style="display:none"></span>
+        </div>
+      </div>
+      <div class="dash-msg" id="dashMsg" style="color:#64748b">Selecciona tus comidas para ver el total.</div>
+    </div>
+
+    <!-- CONTENEDOR DE BLOQUES (generado por JS) -->
+    <div id="blocksWrap"></div>
+
+    <!-- SUPLEMENTOS -->
+    <div class="supps">
+      <h3>💊 SUPLEMENTOS</h3>
+      <div class="supp-row">
+        <span class="supp-ico">💊</span>
+        <div>
+          <div class="supp-name">Creatina 5g</div>
+          <div class="supp-when">Con la cena</div>
+        </div>
+      </div>
+      <div class="supp-row">
+        <span class="supp-ico">🐟</span>
+        <div>
+          <div class="supp-name">Omega 3 — 2 perlas</div>
+          <div class="supp-when">Con la cena</div>
+        </div>
+      </div>
+      <div class="supp-row">
+        <span class="supp-ico">😴</span>
+        <div>
+          <div class="supp-name">Magnesio — 2 cápsulas</div>
+          <div class="supp-when">Antes de dormir</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESUMEN (generado por JS) -->
+    <div id="summaryBox"></div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <div class="saved-ok" id="savedOk"></div>
+      <button class="reset-btn" id="btnReset">🔄 &nbsp;Nuevo día</button>
+      <div class="footer-note">El progreso se guarda automáticamente</div>
+      <div class="double-tap-hint">Doble toque en el título = nuevo día</div>
+    </div>
+
+  </div>
+
+  <script>
+    // ============================================================
+    // === DATOS — NO MODIFICAR CONTENIDO DE BLOCKS NI PTYPES ===
+    // ============================================================
+    var BLOCKS = [
+      {
+        id: 'pre',
+        time: '5:15',
+        label: 'Pre-salida',
+        icon: '🌅',
+        desc: '15 min en casa antes de salir',
+        type: 'single',
+        options: [
+          { id: 'a1', name: 'Agua + café con leche máquina', protein: 5, kcal: 45, tip: 'Tu rutina actual' },
+          { id: 'a2', name: 'Agua + café leche + ½ cacito whey', protein: 17, kcal: 105, tip: 'Whey se disuelve en café caliente' }
+        ]
+      },
+      {
+        id: 'desayuno',
+        time: '7:00',
+        label: 'Desayuno trabajo',
+        icon: '🍳',
+        desc: '30 min · nevera y microondas disponibles',
+        type: 'single',
+        options: [
+          { id: 'b1', name: 'Tortilla 2 huevos + 2 pan centeno + tomate', protein: 23, kcal: 310, tip: 'Huevos en tupper noche anterior · micro 1:30 min' },
+          { id: 'b2', name: 'Sandwich: pan centeno + 80g pavo + queso + tomate + lechuga', protein: 24, kcal: 290, tip: 'Montar noche anterior · envolver en film' },
+          { id: 'b3', name: 'Overnight oats: 50g avena + 150g yogur griego + 10 nueces + frutos rojos', protein: 16, kcal: 280, tip: 'Preparar noche anterior · se ablanda solo en nevera' },
+          { id: 'b4', name: 'Overnight oats PRO: avena + yogur + ½ whey + nueces + frutos rojos', protein: 28, kcal: 340, tip: 'Con medio cacito de whey · más proteína' },
+          { id: 'b5', name: 'Wrap: tortilla integral + 80g pavo + queso + aguacate + tomate', protein: 22, kcal: 295, tip: 'Tortilla 30 seg · aguacate descongelado' }
+        ]
+      },
+      {
+        id: 'cafe',
+        time: '9:00',
+        label: 'Pausa café',
+        icon: '☕',
+        desc: '30 min · refuerzo rápido',
+        type: 'single',
+        options: [
+          { id: 'c1', name: 'Yogur griego 150g + 8-10 nueces', protein: 14, kcal: 195, tip: 'Nueces en bote en la taquilla' },
+          { id: 'c2', name: 'Queso Burgos 100g + 6 almendras', protein: 11, kcal: 130, tip: 'Tarrina individual · abrir y comer' },
+          { id: 'c3', name: '2 huevos duros', protein: 14, kcal: 140, tip: 'Cocer el domingo · duran 4-5 días' },
+          { id: 'c4', name: 'Batido: 1 cacito whey + agua', protein: 25, kcal: 115, tip: '30 segundos en shaker' },
+          { id: 'c5', name: 'Mousse +Proteínas Mercadona 200g chocolate', protein: 20, kcal: 152, tip: 'Nevera trabajo · 1,32€' },
+          { id: 'c6', name: 'Batido +Proteínas Mercadona 330ml', protein: 26, kcal: 170, tip: 'Vainilla / chocolate / café · 1,30€' }
+        ]
+      },
+      {
+        id: 'comida',
+        time: '11:00',
+        label: 'Comida trabajo',
+        icon: '🥘',
+        desc: 'Tupper + microondas · 40-45 min',
+        type: 'single',
+        options: [
+          { id: 'd1', name: '150g pollo plancha + 80g arroz + 150g brócoli', protein: 38, kcal: 420, tip: '2 pechugas noche anterior: una cenar, una tupper' },
+          { id: 'd2', name: '1 lata atún + 100g pasta + tomate + aceite', protein: 28, kcal: 350, tip: 'Pasta sobrante de casa · lata abrir allí' },
+          { id: 'd3', name: '200g lentejas bote + 1 lata atún + pimiento', protein: 34, kcal: 380, tip: 'Bote Mercadona + lata · 2 min micro' },
+          { id: 'd4', name: '3 huevos revueltos + 100g espinacas + pan centeno', protein: 24, kcal: 340, tip: 'Batir en tupper noche anterior · micro 2-3 min' },
+          { id: 'd5', name: '200g garbanzos bote + 100g pollo + pimiento + tomate', protein: 32, kcal: 390, tip: 'Bote Mercadona + pollo sobrante' },
+          { id: 'd6', name: 'Wrap: tortilla integral + 100g pollo + queso + lechuga', protein: 30, kcal: 345, tip: 'Calentar 1 min micro · fácil de comer' }
+        ]
+      },
+      {
+        id: 'snack',
+        time: '14:15',
+        label: 'Snack variable',
+        icon: '⚡',
+        desc: 'Solo si puedes · no es obligatorio',
+        type: 'single',
+        options: [
+          { id: 'e0', name: 'Hoy no puedo — paso', protein: 0, kcal: 0, tip: 'Sin culpa · el plan sigue funcionando' },
+          { id: 'e1', name: 'Plátano + 8-10 almendras', protein: 6, kcal: 180, tip: 'No necesita nevera · llevas en la bolsa' },
+          { id: 'e2', name: 'Manzana + 8 nueces', protein: 5, kcal: 175, tip: 'Nueces en bolsita' },
+          { id: 'e3', name: 'Barrita proteica menos de 6g azúcar', protein: 18, kcal: 200, tip: 'En la bolsa · vale para mañana si no la comes' },
+          { id: 'e4', name: '½ tortilla integral + 40g pavo + 20g queso', protein: 14, kcal: 170, tip: 'Preparar a la vez que el desayuno' },
+          { id: 'e5', name: 'Yogur +Proteínas Mercadona natural 120g', protein: 12, kcal: 70, tip: 'Nevera trabajo · 0,34€' }
+        ]
+      },
+      {
+        id: 'principal',
+        time: '17:30',
+        label: 'Comida principal',
+        icon: '🏠',
+        desc: 'Con tu pareja · lo que tengáis planeado',
+        type: 'principal'
+      },
+      {
+        id: 'noche',
+        time: '21:00',
+        label: 'Noche',
+        icon: '🌙',
+        desc: 'Opcional · proteína lenta para recuperar',
+        type: 'single',
+        options: [
+          { id: 'g0', name: 'Paso — no tengo hambre', protein: 0, kcal: 0, tip: 'Si has comido bien el día, perfecto' },
+          { id: 'g1', name: 'Vaso leche 250ml', protein: 9, kcal: 95, tip: 'Caseína: absorción lenta mientras duermes' },
+          { id: 'g2', name: 'Yogur griego 150g + 8 nueces', protein: 14, kcal: 195, tip: 'Proteína lenta + omega-3' },
+          { id: 'g3', name: 'Queso fresco batido Mercadona 80g + 6 nueces', protein: 11, kcal: 130, tip: 'Ligero y efectivo' },
+          { id: 'g4', name: 'Batido: 1 cacito whey + 250ml leche', protein: 33, kcal: 210, tip: 'Cierre perfecto si te falta proteína' },
+          { id: 'g5', name: 'Flan huevo sin azúcar Mercadona + 5 nueces', protein: 9, kcal: 130, tip: 'Antojo dulce controlado · 1,90€ pack 4' }
+        ]
+      }
+    ];
+
+    var PTYPES = [
+      { label: 'Pollo / pavo', prot: 35, kcal: 380 },
+      { label: 'Pescado', prot: 33, kcal: 330 },
+      { label: 'Carne', prot: 36, kcal: 420 },
+      { label: 'Huevos / tortilla', prot: 24, kcal: 360 },
+      { label: 'Legumbres + prot.', prot: 30, kcal: 370 },
+      { label: 'Otro / mixto', prot: 25, kcal: 350 }
+    ];
+
+    // ============================================================
+    // === ESTADO con fallback en memoria si localStorage falla ===
+    // ============================================================
+    var TODAY = new Date().toISOString().slice(0, 10);
+    var KEY = 'meal_' + TODAY;
+
+    // Estado inicial — siempre disponible en memoria
+    var S = { selections: {}, princProt: 0, princKcal: 0, princType: '' };
+
+    // Bloque expandido actualmente (null = ninguno)
+    var expanded = null;
+
+    // Flag para saber si localStorage funciona en este contexto
+    var storageAvailable = false;
+
+    // ============================================================
+    // === ALMACENAMIENTO SEGURO (try/catch + fallback memoria) ===
+    // ============================================================
+
+    // Detectar si localStorage está disponible (falla en file:// en iOS)
+    function checkStorage() {
+      try {
+        var testKey = '__storage_test__';
+        localStorage.setItem(testKey, '1');
+        localStorage.removeItem(testKey);
+        storageAvailable = true;
+      } catch (e) {
+        storageAvailable = false;
+      }
+    }
+
+    function save() {
+      if (!storageAvailable) return; // Sin storage, el estado vive solo en memoria
+      try {
+        localStorage.setItem(KEY, JSON.stringify(S));
+      } catch (e) {
+        // Fallo silencioso — el estado sigue en memoria
+      }
+      // Feedback visual de guardado
+      var el = document.getElementById('savedOk');
+      if (el) {
+        el.textContent = '✓ Guardado';
+        setTimeout(function() { el.textContent = ''; }, 1500);
+      }
+    }
+
+    function load() {
+      checkStorage();
+      if (!storageAvailable) return; // Estado por defecto en memoria
+
+      try {
+        var raw = localStorage.getItem(KEY);
+        if (raw) {
+          var data = JSON.parse(raw);
+          if (data && typeof data === 'object') {
+            // Merge seguro para no perder propiedades si el formato cambió
+            S.selections = data.selections || {};
+            S.princProt = data.princProt || 0;
+            S.princKcal = data.princKcal || 0;
+            S.princType = data.princType || '';
+          }
+        }
+      } catch (e) {
+        // Si falla la lectura, seguimos con el estado por defecto
+      }
+
+      // Mostrar banner de instalación si no se ha cerrado
+      try {
+        if (storageAvailable && !localStorage.getItem('banner_closed')) {
+          var banner = document.getElementById('installBanner');
+          if (banner) banner.style.display = 'flex';
+        }
+      } catch (e) { /* ignorar */ }
+    }
+
+    function closeBanner() {
+      var banner = document.getElementById('installBanner');
+      if (banner) banner.style.display = 'none';
+      if (storageAvailable) {
+        try { localStorage.setItem('banner_closed', '1'); } catch (e) { /* ok */ }
+      }
+    }
+
+    // ============================================================
+    // === MODAL ===
+    // ============================================================
+    function openModal() {
+      var modal = document.getElementById('modalOverlay');
+      if (modal) modal.classList.add('show');
+    }
+
+    function closeModal() {
+      var modal = document.getElementById('modalOverlay');
+      if (modal) modal.classList.remove('show');
+    }
+
+    function confirmReset() {
+      S = { selections: {}, princProt: 0, princKcal: 0, princType: '' };
+      if (storageAvailable) {
+        try { localStorage.removeItem(KEY); } catch (e) { /* ok */ }
+      }
+      expanded = null;
+      closeModal();
+      var savedOk = document.getElementById('savedOk');
+      if (savedOk) savedOk.textContent = '';
+      render();
+      update();
+    }
+
+    // ============================================================
+    // === CÁLCULOS ===
+    // ============================================================
+    function totals() {
+      var prot = S.princProt || 0;
+      var kcal = S.princKcal || 0;
+      var n = S.princProt > 0 ? 1 : 0;
+
+      BLOCKS.forEach(function(b) {
+        if (b.type !== 'single') return;
+        var sel = S.selections[b.id];
+        if (sel) {
+          var opt = b.options.find(function(o) { return o.id === sel; });
+          if (opt) {
+            prot += opt.protein;
+            kcal += opt.kcal;
+            n++;
+          }
+        }
+      });
+
+      return { prot: prot, kcal: kcal, n: n };
+    }
+
+    // Color según nivel de proteína
+    function col(p) {
+      if (p >= 130) return '#22c55e';
+      if (p >= 100) return '#eab308';
+      if (p >= 60) return '#f97316';
+      return '#ef4444';
+    }
+
+    // ============================================================
+    // === ACTUALIZAR UI (dashboard, barra, mensajes, resumen) ===
+    // ============================================================
+    var confettiDone = false;
+
+    function update() {
+      var t = totals();
+      var prot = t.prot;
+      var kcal = t.kcal;
+      var n = t.n;
+
+      // Helper para getElementById
+      var $ = function(id) { return document.getElementById(id); };
+
+      // Dashboard principal
+      $('totalProt').textContent = prot;
+      $('totalProt').style.color = col(prot);
+      $('totalKcal').textContent = kcal + ' kcal';
+      $('tramosCount').textContent = n + '/7 tramos';
+
+      // Barra de progreso
+      var pct = Math.min((prot / 150) * 100, 100);
+      var bf = $('barFill');
+      bf.style.width = pct + '%';
+      bf.style.background = col(prot);
+
+      var bl = $('barLbl');
+      if (pct > 18) {
+        bl.style.display = 'block';
+        bl.textContent = prot + 'g';
+      } else {
+        bl.style.display = 'none';
+      }
+
+      // Etiqueta del objetivo
+      var tl = $('targetLbl');
+      tl.style.color = prot >= 130 ? '#22c55e' : '#64748b';
+      tl.style.fontWeight = prot >= 130 ? '700' : '400';
+
+      // Mensaje motivacional
+      var dm = $('dashMsg');
+      if (prot >= 140) {
+        dm.textContent = 'Máquina. Proteína más que cubierta.';
+        dm.style.color = '#22c55e';
+      } else if (prot >= 130) {
+        dm.textContent = 'Objetivo cumplido. Así se hace.';
+        dm.style.color = '#22c55e';
+      } else if (prot >= 100) {
+        dm.textContent = 'Vas muy bien. Un poco más y llegas.';
+        dm.style.color = '#eab308';
+      } else if (prot > 0) {
+        dm.textContent = 'Buen arranque. Sigue eligiendo tramos.';
+        dm.style.color = '#f97316';
+      } else {
+        dm.textContent = 'Selecciona tus comidas para ver el total.';
+        dm.style.color = '#64748b';
+      }
+
+      // Confeti al alcanzar el objetivo
+      if (prot >= 130 && !confettiDone) {
+        confettiDone = true;
+        boom();
+      }
+      if (prot < 130) confettiDone = false;
+
+      // Resumen del día (visible con 5+ tramos)
+      var sb = $('summaryBox');
+      if (n >= 5) {
+        sb.innerHTML = '<div class="summary"><h3>📊 RESUMEN DEL DÍA</h3>' +
+          '<div class="summary-grid">' +
+          '<div class="scard"><div class="scard-num">' + prot + 'g</div><div class="scard-lbl">proteína total</div></div>' +
+          '<div class="scard"><div class="scard-num">' + kcal + '</div><div class="scard-lbl">kcal comida</div></div>' +
+          '</div>' +
+          (prot >= 130 ? '<div class="summary-msg">De 40-60g a ' + prot + 'g. Eso es un cambio real.</div>' : '') +
+          '</div>';
+      } else {
+        sb.innerHTML = '';
+      }
+
+      // Fecha del día
+      var d = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+      $('dateLabel').textContent = d.charAt(0).toUpperCase() + d.slice(1);
+    }
+
+    // Animación de confeti
+    function boom() {
+      var colors = ['#22c55e', '#eab308', '#3b82f6', '#f97316', '#a855f7'];
+      for (var i = 0; i < 22; i++) {
+        var el = document.createElement('div');
+        el.className = 'confetti-p';
+        el.style.cssText = 'left:' + Math.random() * 100 + '%;top:-10px;background:' +
+          colors[i % 5] + ';border-radius:' + (i % 3 === 0 ? '50%' : '2px') +
+          ';animation-duration:' + (1.5 + Math.random() * 1.5) +
+          's;animation-delay:' + Math.random() * 0.4 + 's';
+        document.body.appendChild(el);
+        setTimeout(function(node) { node.remove(); }, 3200, el);
+      }
+    }
+
+    // ============================================================
+    // === RENDER — usa createElement para todo, nunca onclick en innerHTML ===
+    // ============================================================
+
+    /**
+     * Render principal: crea el bloque de "Comida principal" con
+     * botones de tipo y slider, todo con createElement + addEventListener
+     */
+    function renderPrincipal() {
+      var isExp = expanded === 'principal';
+      var has = S.princProt > 0;
+
+      var div = document.createElement('div');
+      div.className = 'block' + (has ? ' activo' : '');
+
+      // — Cabecera del bloque —
+      var hdr = document.createElement('div');
+      hdr.className = 'blk-hdr';
+
+      var icon = document.createElement('span');
+      icon.className = 'blk-icon';
+      icon.textContent = '🏠';
+
+      var info = document.createElement('div');
+      info.className = 'blk-info';
+
+      var top = document.createElement('div');
+      top.className = 'blk-top';
+
+      var timeSpan = document.createElement('span');
+      timeSpan.className = 'blk-time';
+      timeSpan.textContent = '17:30';
+
+      var nameSpan = document.createElement('span');
+      nameSpan.className = 'blk-name';
+      nameSpan.textContent = 'Comida principal';
+
+      top.appendChild(timeSpan);
+      top.appendChild(nameSpan);
+      info.appendChild(top);
+
+      var sub = document.createElement('div');
+      if (has && !isExp) {
+        sub.className = 'blk-sel';
+        sub.textContent = '✓ ' + S.princType + ' · ~' + S.princProt + 'g estimados';
+      } else {
+        sub.className = 'blk-sub';
+        sub.textContent = 'Con tu pareja · lo que tengáis planeado';
+      }
+      info.appendChild(sub);
+
+      var right = document.createElement('div');
+      right.className = 'blk-right';
+
+      if (has) {
+        var badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = '+' + S.princProt + 'g';
+        right.appendChild(badge);
+      }
+
+      var arrowEl = document.createElement('span');
+      arrowEl.className = 'arrow' + (isExp ? ' open' : '');
+      arrowEl.textContent = '▾';
+      right.appendChild(arrowEl);
+
+      hdr.appendChild(icon);
+      hdr.appendChild(info);
+      hdr.appendChild(right);
+
+      // Evento de toque/clic con delegación segura para iOS
+      hdr.addEventListener('click', function(e) {
+        e.stopPropagation();
+        expanded = expanded === 'principal' ? null : 'principal';
+        // Defer render al siguiente frame para que iOS termine el evento actual
+        requestAnimationFrame(render);
+      });
+
+      div.appendChild(hdr);
+
+      // — Panel expandido —
+      if (isExp) {
+        var inn = document.createElement('div');
+        inn.className = 'principal-inner';
+
+        var desc = document.createElement('div');
+        desc.className = 'principal-desc';
+        desc.textContent = 'Elige el tipo de proteína y ajusta la cantidad estimada.';
+        inn.appendChild(desc);
+
+        // Grid de tipos de proteína
+        var grid = document.createElement('div');
+        grid.className = 'ptype-grid';
+
+        PTYPES.forEach(function(pt) {
+          var btn = document.createElement('div');
+          btn.className = 'ptype-btn' + (S.princType === pt.label ? ' on' : '');
+          btn.textContent = pt.label;
+          // addEventListener en lugar de onclick para compatibilidad iOS
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            S.princType = pt.label;
+            S.princProt = pt.prot;
+            S.princKcal = pt.kcal;
+            save();
+            update();
+            requestAnimationFrame(render);
+          });
+          grid.appendChild(btn);
+        });
+        inn.appendChild(grid);
+
+        // Slider de proteína
+        var sliderLbl = document.createElement('div');
+        sliderLbl.className = 'slider-label';
+        sliderLbl.textContent = 'Ajusta la proteína estimada:';
+        inn.appendChild(sliderLbl);
+
+        var sliderRow = document.createElement('div');
+        sliderRow.className = 'slider-row';
+
+        var slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = '10';
+        slider.max = '65';
+        slider.step = '1';
+        slider.value = S.princProt || 30;
+
+        var valBox = document.createElement('div');
+        var valNum = document.createElement('div');
+        valNum.className = 'slider-val';
+        valNum.textContent = S.princProt || 30;
+        var valUnit = document.createElement('div');
+        valUnit.className = 'slider-unit';
+        valUnit.textContent = 'g prot.';
+        valBox.appendChild(valNum);
+        valBox.appendChild(valUnit);
+
+        // Evento input del slider — NO re-renderiza, solo actualiza valores
+        slider.addEventListener('input', function() {
+          S.princProt = parseInt(slider.value);
+          S.princKcal = Math.round(S.princProt * 11);
+          valNum.textContent = S.princProt;
+          if (!S.princType) S.princType = 'Personalizado';
+          save();
+          update();
+        });
+
+        sliderRow.appendChild(slider);
+        sliderRow.appendChild(valBox);
+        inn.appendChild(sliderRow);
+
+        div.appendChild(inn);
+      }
+
+      return div;
+    }
+
+    /**
+     * Render de un bloque normal (single): cabecera + panel de opciones
+     * Todo con createElement para compatibilidad iOS Safari
+     */
+    function renderBlock(b) {
+      var sel = S.selections[b.id];
+      var selOpt = sel ? b.options.find(function(o) { return o.id === sel; }) : null;
+      var isExp = expanded === b.id;
+
+      var div = document.createElement('div');
+      div.className = 'block' + (selOpt ? ' activo' : '');
+
+      // — Cabecera —
+      var hdr = document.createElement('div');
+      hdr.className = 'blk-hdr';
+
+      var icon = document.createElement('span');
+      icon.className = 'blk-icon';
+      icon.textContent = b.icon;
+
+      var info = document.createElement('div');
+      info.className = 'blk-info';
+
+      var top = document.createElement('div');
+      top.className = 'blk-top';
+
+      var timeSpan = document.createElement('span');
+      timeSpan.className = 'blk-time';
+      timeSpan.textContent = b.time;
+
+      var nameSpan = document.createElement('span');
+      nameSpan.className = 'blk-name';
+      nameSpan.textContent = b.label;
+
+      top.appendChild(timeSpan);
+      top.appendChild(nameSpan);
+      info.appendChild(top);
+
+      var sub = document.createElement('div');
+      if (selOpt && !isExp) {
+        sub.className = 'blk-sel';
+        var selName = selOpt.name.length > 40 ? selOpt.name.substring(0, 40) + '…' : selOpt.name;
+        sub.textContent = '✓ ' + selName;
+      } else {
+        sub.className = 'blk-sub';
+        sub.textContent = b.desc;
+      }
+      info.appendChild(sub);
+
+      var right = document.createElement('div');
+      right.className = 'blk-right';
+
+      if (selOpt) {
+        var badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = '+' + selOpt.protein + 'g';
+        right.appendChild(badge);
+      }
+
+      var arrowEl = document.createElement('span');
+      arrowEl.className = 'arrow' + (isExp ? ' open' : '');
+      arrowEl.textContent = '▾';
+      right.appendChild(arrowEl);
+
+      hdr.appendChild(icon);
+      hdr.appendChild(info);
+      hdr.appendChild(right);
+
+      // Evento — usar addEventListener + requestAnimationFrame para iOS
+      hdr.addEventListener('click', function(e) {
+        e.stopPropagation();
+        expanded = expanded === b.id ? null : b.id;
+        requestAnimationFrame(render);
+      });
+
+      div.appendChild(hdr);
+
+      // — Panel de opciones (si está expandido) —
+      if (isExp) {
+        var panel = document.createElement('div');
+        panel.className = 'opts-panel';
+
+        var descEl = document.createElement('div');
+        descEl.className = 'opts-desc';
+        descEl.textContent = b.desc;
+        panel.appendChild(descEl);
+
+        b.options.forEach(function(opt) {
+          var isSel = sel === opt.id;
+          var od = document.createElement('div');
+          od.className = 'opt' + (isSel ? ' sel' : '');
+
+          // Radio visual
+          var radio = document.createElement('div');
+          radio.className = 'radio' + (isSel ? ' on' : '');
+          radio.textContent = isSel ? '✓' : '';
+
+          // Cuerpo (nombre + tip)
+          var body = document.createElement('div');
+          body.className = 'opt-body';
+
+          var optName = document.createElement('div');
+          optName.className = 'opt-name' + (isSel ? ' sel' : '');
+          optName.textContent = opt.name;
+
+          var optTip = document.createElement('div');
+          optTip.className = 'opt-tip';
+          optTip.textContent = '💡 ' + opt.tip;
+
+          body.appendChild(optName);
+          body.appendChild(optTip);
+
+          // Números (proteína + kcal)
+          var nums = document.createElement('div');
+          nums.className = 'opt-nums';
+
+          var optProt = document.createElement('div');
+          optProt.className = 'opt-prot' + (isSel ? ' sel' : '');
+          optProt.textContent = opt.protein + 'g';
+
+          var optKcal = document.createElement('div');
+          optKcal.className = 'opt-kcal';
+          optKcal.textContent = opt.kcal + ' kcal';
+
+          nums.appendChild(optProt);
+          nums.appendChild(optKcal);
+
+          od.appendChild(radio);
+          od.appendChild(body);
+          od.appendChild(nums);
+
+          // Evento de selección — toggle si ya está seleccionado
+          od.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (S.selections[b.id] === opt.id) {
+              delete S.selections[b.id];
+            } else {
+              S.selections[b.id] = opt.id;
+            }
+            save();
+            update();
+            requestAnimationFrame(render);
+          });
+
+          panel.appendChild(od);
+        });
+
+        div.appendChild(panel);
+      }
+
+      return div;
+    }
+
+    /**
+     * Render principal: vacía y reconstruye todos los bloques.
+     * Usa requestAnimationFrame en los handlers para que iOS
+     * termine de procesar el evento antes de destruir el DOM.
+     */
+    function render() {
+      var wrap = document.getElementById('blocksWrap');
+      if (!wrap) return;
+
+      // Vaciar contenedor
+      wrap.innerHTML = '';
+
+      // Crear cada bloque con createElement (nunca innerHTML con onclick)
+      BLOCKS.forEach(function(b) {
+        if (b.type === 'principal') {
+          wrap.appendChild(renderPrincipal());
+        } else {
+          wrap.appendChild(renderBlock(b));
+        }
+      });
+    }
+
+    // ============================================================
+    // === DOBLE TOQUE EN TÍTULO PARA RESETEAR ===
+    // ============================================================
+
+    /**
+     * Implementación de doble toque en el título:
+     * - Dos toques en menos de 400ms → abre modal de reset
+     * - No interfiere con scroll (solo en el h1)
+     * - Feedback visual (flash de opacidad)
+     */
+    (function() {
+      var titleEl = document.getElementById('titleH1');
+      var lastTap = 0;
+      var tapTimeout = null;
+
+      titleEl.addEventListener('click', function(e) {
+        e.preventDefault();
+        var now = Date.now();
+        var delta = now - lastTap;
+
+        if (delta < 400 && delta > 50) {
+          // Doble toque detectado
+          clearTimeout(tapTimeout);
+          lastTap = 0;
+          // Feedback visual
+          titleEl.classList.add('tap-flash');
+          setTimeout(function() { titleEl.classList.remove('tap-flash'); }, 200);
+          // Abrir modal
+          openModal();
+        } else {
+          lastTap = now;
+          // Feedback sutil del primer toque
+          tapTimeout = setTimeout(function() {
+            lastTap = 0;
+          }, 500);
+        }
+      });
+    })();
+
+    // ============================================================
+    // === DELEGACIÓN DE EVENTOS PARA ELEMENTOS ESTÁTICOS ===
+    // ============================================================
+
+    // Botón "Nuevo día" en footer
+    document.getElementById('btnReset').addEventListener('click', function(e) {
+      e.preventDefault();
+      openModal();
+    });
+
+    // Botones del modal
+    document.getElementById('btnModalCancel').addEventListener('click', function(e) {
+      e.preventDefault();
+      closeModal();
+    });
+
+    document.getElementById('btnModalConfirm').addEventListener('click', function(e) {
+      e.preventDefault();
+      confirmReset();
+    });
+
+    // Cerrar modal tocando el overlay (fuera del sheet)
+    document.getElementById('modalOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    // Cerrar banner de instalación
+    document.getElementById('installClose').addEventListener('click', function(e) {
+      e.preventDefault();
+      closeBanner();
+    });
+
+    // ============================================================
+    // === INIT ===
+    // ============================================================
+    load();    // Cargar estado (localStorage o memoria)
+    render();  // Construir UI
+    update();  // Actualizar dashboard
+  </script>
+
+</body>
+</html>
