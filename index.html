@@ -738,7 +738,52 @@
       touch-action: manipulation;
     }
 
-    /* === CONFETI === */
+    /* === TOGGLE SUPERMERCADO === */
+    .super-toggle {
+      display: flex;
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 3px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      gap: 2px;
+    }
+
+    .stoggle-btn {
+      flex: 1;
+      padding: 8px 4px;
+      border-radius: 9px;
+      font-size: 11px;
+      font-weight: 500;
+      text-align: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      border: none;
+      background: transparent;
+      font-family: var(--font-body);
+      min-height: 36px;
+      touch-action: manipulation;
+      transition: all .15s;
+    }
+
+    .stoggle-btn.active[data-filter="M"] { background: #1e3a5f; color: #60a5fa; }
+    .stoggle-btn.active[data-filter="MA"] { background: #1e3a2f; color: #22c55e; }
+    .stoggle-btn.active[data-filter="A"] { background: #2d1f3f; color: #a78bfa; }
+
+    /* Badges supermercado en opciones */
+    .super-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 700;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .super-m { background: #1e3a5f; color: #60a5fa; }
+    .super-a { background: #2d1f3f; color: #a78bfa; }
     @keyframes fall {
       0% {
         transform: translateY(0) rotate(0);
@@ -793,7 +838,12 @@
       <span class="install-close" id="installClose">✕</span>
     </div>
 
-    <!-- DASHBOARD STICKY -->
+    <!-- TOGGLE SUPERMERCADO -->
+    <div class="super-toggle" id="superToggle">
+      <button class="stoggle-btn" id="stBtn-M" data-filter="M">🔵 Mercadona</button>
+      <button class="stoggle-btn active" id="stBtn-MA" data-filter="MA">✦ Ambos</button>
+      <button class="stoggle-btn" id="stBtn-A" data-filter="A">🟣 Ahorramás</button>
+    </div>
     <div class="dash">
       <div class="dash-row">
         <div>
@@ -864,6 +914,7 @@
     // ============================================================
     // === DATOS — NO MODIFICAR CONTENIDO DE BLOCKS NI PTYPES ===
     // ============================================================
+    // super: 'M' = solo Mercadona · 'A' = solo Ahorramás · 'MA' = ambos
     var BLOCKS = [
       {
         id: 'pre',
@@ -873,8 +924,8 @@
         desc: '15 min en casa antes de salir',
         type: 'single',
         options: [
-          { id: 'a1', name: 'Agua + café con leche máquina', protein: 5, kcal: 45, tip: 'Tu rutina actual' },
-          { id: 'a2', name: 'Agua + café leche + ½ cacito whey', protein: 17, kcal: 105, tip: 'Whey se disuelve en café caliente' }
+          { id: 'a1', name: 'Agua + café con leche máquina', protein: 5, kcal: 45, tip: 'Tu rutina actual', super: 'MA' },
+          { id: 'a2', name: 'Agua + café leche + ½ cacito whey', protein: 17, kcal: 105, tip: 'Whey se disuelve en café caliente', super: 'MA' }
         ]
       },
       {
@@ -885,11 +936,13 @@
         desc: '30 min · nevera y microondas disponibles',
         type: 'single',
         options: [
-          { id: 'b1', name: 'Tortilla 2 huevos + 2 pan centeno + tomate', protein: 23, kcal: 310, tip: 'Huevos en tupper noche anterior · micro 1:30 min' },
-          { id: 'b2', name: 'Sandwich: pan centeno + 80g pavo + queso + tomate + lechuga', protein: 24, kcal: 290, tip: 'Montar noche anterior · envolver en film' },
-          { id: 'b3', name: 'Overnight oats: 50g avena + 150g yogur griego + 10 nueces + frutos rojos', protein: 16, kcal: 280, tip: 'Preparar noche anterior · se ablanda solo en nevera' },
-          { id: 'b4', name: 'Overnight oats PRO: avena + yogur + ½ whey + nueces + frutos rojos', protein: 28, kcal: 340, tip: 'Con medio cacito de whey · más proteína' },
-          { id: 'b5', name: 'Wrap: tortilla integral + 80g pavo + queso + aguacate + tomate', protein: 22, kcal: 295, tip: 'Tortilla 30 seg · aguacate descongelado' }
+          { id: 'b1', name: 'Tortilla 2 huevos + 2 pan centeno + tomate', protein: 23, kcal: 310, tip: 'Huevos en tupper noche anterior · micro 1:30 min', super: 'M' },
+          { id: 'b1a', name: 'Tortilla 2 huevos + 2 pan proteico Ahorramás + tomate', protein: 29, kcal: 330, tip: 'Pan proteico 6g/rebanada · mismo prep tupper', super: 'A' },
+          { id: 'b2', name: 'Sandwich: pan centeno + 80g pavo + queso + tomate + lechuga', protein: 24, kcal: 290, tip: 'Montar noche anterior · envolver en film', super: 'M' },
+          { id: 'b2a', name: 'Sandwich: pan proteico + 80g pavo Frial + queso 0% + tomate', protein: 30, kcal: 295, tip: 'Pan Ahorramás + pavo Frial 94% carne · montar noche anterior', super: 'A' },
+          { id: 'b3', name: 'Overnight oats: 50g avena Brüggen + 150g yogur +Prot + 10 nueces + frutos rojos', protein: 22, kcal: 285, tip: 'Preparar noche anterior · se ablanda solo en nevera', super: 'M' },
+          { id: 'b4', name: 'Overnight oats PRO: avena + yogur +Prot + ½ whey + nueces + frutos rojos', protein: 34, kcal: 345, tip: 'Con medio cacito de whey · máxima proteína mañana', super: 'M' },
+          { id: 'b5', name: 'Wrap: tortilla integral + 80g pavo + queso + aguacate + tomate', protein: 22, kcal: 295, tip: 'Tortilla 30 seg · aguacate congelado descongelado', super: 'M' }
         ]
       },
       {
@@ -900,12 +953,14 @@
         desc: '30 min · refuerzo rápido',
         type: 'single',
         options: [
-          { id: 'c1', name: 'Yogur griego 150g + 8-10 nueces', protein: 14, kcal: 195, tip: 'Nueces en bote en la taquilla' },
-          { id: 'c2', name: 'Queso Burgos 100g + 6 almendras', protein: 11, kcal: 130, tip: 'Tarrina individual · abrir y comer' },
-          { id: 'c3', name: '2 huevos duros', protein: 14, kcal: 140, tip: 'Cocer el domingo · duran 4-5 días' },
-          { id: 'c4', name: 'Batido: 1 cacito whey + agua', protein: 25, kcal: 115, tip: '30 segundos en shaker' },
-          { id: 'c5', name: 'Mousse +Proteínas Mercadona 200g chocolate', protein: 20, kcal: 152, tip: 'Nevera trabajo · 1,32€' },
-          { id: 'c6', name: 'Batido +Proteínas Mercadona 330ml', protein: 26, kcal: 170, tip: 'Vainilla / chocolate / café · 1,30€' }
+          { id: 'c1', name: 'Yogur +Proteínas Hacendado 120g + 8 nueces', protein: 14, kcal: 142, tip: 'Nevera trabajo · 0,35€ unidad', super: 'M' },
+          { id: 'c1a', name: 'Yogur Fage 0% 150g + 8 nueces', protein: 16, kcal: 160, tip: 'Mejor proteína real · Ahorramás 3,69€/450g', super: 'A' },
+          { id: 'c2', name: 'Queso Burgos 100g + 6 almendras', protein: 11, kcal: 130, tip: 'Tarrina individual · abrir y comer', super: 'MA' },
+          { id: 'c3', name: '2 huevos duros', protein: 14, kcal: 140, tip: 'Cocer el domingo · duran 4-5 días en nevera', super: 'MA' },
+          { id: 'c4', name: 'Batido: 1 cacito whey + agua', protein: 25, kcal: 115, tip: '30 segundos en shaker · llevas en la bolsa', super: 'MA' },
+          { id: 'c5', name: 'Mousse +Proteínas Mercadona 100g chocolate', protein: 10, kcal: 74, tip: 'Nevera trabajo · 74 kcal · sin lactosa', super: 'M' },
+          { id: 'c6', name: 'Batido +Proteínas Mercadona 330ml', protein: 26, kcal: 170, tip: 'Vainilla / chocolate / café · 1,30€', super: 'M' },
+          { id: 'c6a', name: 'Natillas Alipende proteínas vainilla 125g', protein: 13, kcal: 105, tip: '0,44€/unidad · mejor precio que Mercadona', super: 'A' }
         ]
       },
       {
@@ -916,12 +971,14 @@
         desc: 'Tupper + microondas · 40-45 min',
         type: 'single',
         options: [
-          { id: 'd1', name: '150g pollo plancha + 80g arroz + 150g brócoli', protein: 38, kcal: 420, tip: '2 pechugas noche anterior: una cenar, una tupper' },
-          { id: 'd2', name: '1 lata atún + 100g pasta + tomate + aceite', protein: 28, kcal: 350, tip: 'Pasta sobrante de casa · lata abrir allí' },
-          { id: 'd3', name: '200g lentejas bote + 1 lata atún + pimiento', protein: 34, kcal: 380, tip: 'Bote Mercadona + lata · 2 min micro' },
-          { id: 'd4', name: '3 huevos revueltos + 100g espinacas + pan centeno', protein: 24, kcal: 340, tip: 'Batir en tupper noche anterior · micro 2-3 min' },
-          { id: 'd5', name: '200g garbanzos bote + 100g pollo + pimiento + tomate', protein: 32, kcal: 390, tip: 'Bote Mercadona + pollo sobrante' },
-          { id: 'd6', name: 'Wrap: tortilla integral + 100g pollo + queso + lechuga', protein: 30, kcal: 345, tip: 'Calentar 1 min micro · fácil de comer' }
+          { id: 'd1', name: '150g pollo plancha + 80g arroz + 150g brócoli', protein: 38, kcal: 420, tip: '2 pechugas noche anterior: cenar + tupper · brócoli 3 min micro', super: 'MA' },
+          { id: 'd2', name: '1 lata atún + 100g pasta + tomate + aceite oliva', protein: 28, kcal: 350, tip: 'Pasta sobrante de casa · lata abrir allí', super: 'MA' },
+          { id: 'd3', name: '200g lentejas bote + 1 lata atún + pimiento', protein: 34, kcal: 380, tip: 'Bote + lata · 2 min micro', super: 'MA' },
+          { id: 'd4', name: '3 huevos revueltos + 100g espinacas + pan centeno', protein: 24, kcal: 340, tip: 'Batir en tupper noche anterior · micro 2-3 min', super: 'M' },
+          { id: 'd4a', name: '3 huevos revueltos + espinacas + pan proteico Ahorramás', protein: 30, kcal: 350, tip: 'Pan proteico 6g/rebanada · mismo prep micro', super: 'A' },
+          { id: 'd5', name: '200g garbanzos bote + 100g pollo + pimiento + tomate', protein: 32, kcal: 390, tip: 'Bote + pollo sobrante · mezclar frío o micro', super: 'MA' },
+          { id: 'd6', name: 'Wrap: tortilla integral + 100g pollo + queso 0% + lechuga', protein: 30, kcal: 345, tip: 'Calentar 1 min micro · fácil de comer', super: 'M' },
+          { id: 'd6a', name: 'Wrap: tortitas lenteja Ecocesta + 80g pavo Frial + queso 0% Alipende', protein: 32, kcal: 300, tip: 'Tortitas lenteja 25g prot/100g · pavo Frial 94% carne · bajo sal', super: 'A' }
         ]
       },
       {
@@ -932,12 +989,15 @@
         desc: 'Solo si puedes · no es obligatorio',
         type: 'single',
         options: [
-          { id: 'e0', name: 'Hoy no puedo — paso', protein: 0, kcal: 0, tip: 'Sin culpa · el plan sigue funcionando' },
-          { id: 'e1', name: 'Plátano + 8-10 almendras', protein: 6, kcal: 180, tip: 'No necesita nevera · llevas en la bolsa' },
-          { id: 'e2', name: 'Manzana + 8 nueces', protein: 5, kcal: 175, tip: 'Nueces en bolsita' },
-          { id: 'e3', name: 'Barrita proteica menos de 6g azúcar', protein: 18, kcal: 200, tip: 'En la bolsa · vale para mañana si no la comes' },
-          { id: 'e4', name: '½ tortilla integral + 40g pavo + 20g queso', protein: 14, kcal: 170, tip: 'Preparar a la vez que el desayuno' },
-          { id: 'e5', name: 'Yogur +Proteínas Mercadona natural 120g', protein: 12, kcal: 70, tip: 'Nevera trabajo · 0,34€' }
+          { id: 'e0', name: 'Hoy no puedo — paso', protein: 0, kcal: 0, tip: 'Sin culpa · el plan sigue funcionando', super: 'MA' },
+          { id: 'e1', name: 'Plátano + 8-10 almendras', protein: 6, kcal: 180, tip: 'No necesita nevera · llevas en la bolsa', super: 'MA' },
+          { id: 'e2', name: 'Manzana + 8 nueces', protein: 5, kcal: 175, tip: 'Nueces en bolsita', super: 'MA' },
+          { id: 'e3', name: 'Barrita proteica HSN Evobars (~20g prot)', protein: 19, kcal: 200, tip: 'Llevas en la bolsa · 1,68€ · mejor opción precio', super: 'MA' },
+          { id: 'e3a', name: 'Barrita Hero proteína chocolate (50g)', protein: 15, kcal: 193, tip: 'Ahorramás · 1,99€ · 1,6g azúcar', super: 'A' },
+          { id: 'e4', name: '½ tortilla integral + 40g pavo + 20g queso 0%', protein: 14, kcal: 170, tip: 'Preparar a la vez que el desayuno · film transparente', super: 'M' },
+          { id: 'e4a', name: 'Tortitas lenteja Ecocesta (3 ud) + 40g pavo Frial + queso 0%', protein: 18, kcal: 180, tip: '25g prot/100g en tortitas · pavo bajo sal · sin gluten', super: 'A' },
+          { id: 'e5', name: 'Yogur +Proteínas Mercadona natural 120g', protein: 12, kcal: 62, tip: 'Nevera trabajo · 0,35€', super: 'M' },
+          { id: 'e5a', name: 'Natillas Alipende proteínas vainilla 125g', protein: 13, kcal: 105, tip: 'Ahorramás · 0,44€ · más proteína que Mercadona', super: 'A' }
         ]
       },
       {
@@ -956,12 +1016,15 @@
         desc: 'Opcional · proteína lenta para recuperar',
         type: 'single',
         options: [
-          { id: 'g0', name: 'Paso — no tengo hambre', protein: 0, kcal: 0, tip: 'Si has comido bien el día, perfecto' },
-          { id: 'g1', name: 'Vaso leche 250ml', protein: 9, kcal: 95, tip: 'Caseína: absorción lenta mientras duermes' },
-          { id: 'g2', name: 'Yogur griego 150g + 8 nueces', protein: 14, kcal: 195, tip: 'Proteína lenta + omega-3' },
-          { id: 'g3', name: 'Queso fresco batido Mercadona 80g + 6 nueces', protein: 11, kcal: 130, tip: 'Ligero y efectivo' },
-          { id: 'g4', name: 'Batido: 1 cacito whey + 250ml leche', protein: 33, kcal: 210, tip: 'Cierre perfecto si te falta proteína' },
-          { id: 'g5', name: 'Flan huevo sin azúcar Mercadona + 5 nueces', protein: 9, kcal: 130, tip: 'Antojo dulce controlado · 1,90€ pack 4' }
+          { id: 'g0', name: 'Paso — no tengo hambre', protein: 0, kcal: 0, tip: 'Si has comido bien el día, perfecto', super: 'MA' },
+          { id: 'g1', name: 'Vaso leche 250ml', protein: 9, kcal: 95, tip: 'Caseína: absorción lenta mientras duermes', super: 'MA' },
+          { id: 'g2', name: 'Yogur +Proteínas Hacendado 120g + 8 nueces', protein: 14, kcal: 142, tip: 'Proteína lenta + omega-3 · sin lactosa', super: 'M' },
+          { id: 'g2a', name: 'Yogur Fage 0% 150g + 8 nueces', protein: 16, kcal: 160, tip: 'Mejor proteína real de todas · Ahorramás', super: 'A' },
+          { id: 'g3', name: 'Queso fresco batido 0% Mercadona 80g + 6 nueces', protein: 11, kcal: 85, tip: 'Solo 37 kcal el queso · muy ligero', super: 'M' },
+          { id: 'g3a', name: 'Queso blanco 0% Alipende 125g + 6 nueces', protein: 16, kcal: 115, tip: '9,9g prot/100g · mejor proteína que Mercadona', super: 'A' },
+          { id: 'g4', name: 'Batido: 1 cacito whey + 250ml leche', protein: 33, kcal: 210, tip: 'Cierre perfecto si te falta proteína', super: 'MA' },
+          { id: 'g5', name: 'Flan huevo sin azúcar Mercadona + 5 nueces', protein: 9, kcal: 115, tip: 'Antojo dulce controlado · 1,90€ pack 4', super: 'M' },
+          { id: 'g5a', name: 'Flan proteínas Alipende huevo 100g + 5 nueces', protein: 15, kcal: 115, tip: '10g proteína · 67 kcal · Ahorramás 0,50€', super: 'A' }
         ]
       }
     ];
@@ -975,6 +1038,19 @@
       { label: 'Otro / mixto', prot: 25, kcal: 350 }
     ];
 
+    // Añadidos opcionales para comida principal
+    var EXTRAS = [
+      { id: 'x1', name: 'Pan integral / centeno (2 reb.)', protein: 6, kcal: 160, super: 'M' },
+      { id: 'x2', name: 'Pan proteico Ahorramás (2 reb.)', protein: 12, kcal: 160, super: 'A' },
+      { id: 'x3', name: 'Ensalada con atún', protein: 13, kcal: 110, super: 'MA' },
+      { id: 'x4', name: 'Yogur +Proteínas de postre', protein: 12, kcal: 74, super: 'M' },
+      { id: 'x5', name: 'Natillas Alipende de postre', protein: 13, kcal: 105, super: 'A' },
+      { id: 'x6', name: 'Flan proteico Alipende de postre', protein: 10, kcal: 67, super: 'A' },
+      { id: 'x7', name: 'Flan huevo Mercadona de postre', protein: 9, kcal: 80, super: 'M' },
+      { id: 'x8', name: 'Queso fresco 0% (50g)', protein: 4, kcal: 23, super: 'MA' },
+      { id: 'x9', name: 'Kéfir vaso 200ml', protein: 8, kcal: 148, super: 'MA' }
+    ];
+
     // ============================================================
     // === ESTADO con fallback en memoria si localStorage falla ===
     // ============================================================
@@ -982,7 +1058,7 @@
     var KEY = 'meal_' + TODAY;
 
     // Estado inicial — siempre disponible en memoria
-    var S = { selections: {}, princProt: 0, princKcal: 0, princType: '' };
+    var S = { selections: {}, princProt: 0, princKcal: 0, princType: '', princExtras: {}, superFilter: 'MA' };
 
     // Bloque expandido actualmente (null = ninguno)
     var expanded = null;
@@ -1035,6 +1111,8 @@
             S.princProt = data.princProt || 0;
             S.princKcal = data.princKcal || 0;
             S.princType = data.princType || '';
+            S.princExtras = data.princExtras || {};
+            S.superFilter = data.superFilter || 'MA';
           }
         }
       } catch (e) {
@@ -1072,7 +1150,7 @@
     }
 
     function confirmReset() {
-      S = { selections: {}, princProt: 0, princKcal: 0, princType: '' };
+      S = { selections: {}, princProt: 0, princKcal: 0, princType: '', princExtras: {}, superFilter: 'MA' };
       if (storageAvailable) {
         try { localStorage.removeItem(KEY); } catch (e) { /* ok */ }
       }
@@ -1091,6 +1169,14 @@
       var prot = S.princProt || 0;
       var kcal = S.princKcal || 0;
       var n = S.princProt > 0 ? 1 : 0;
+
+      // Sumar extras de comida principal
+      EXTRAS.forEach(function(ex) {
+        if (S.princExtras && S.princExtras[ex.id]) {
+          prot += ex.protein;
+          kcal += ex.kcal;
+        }
+      });
 
       BLOCKS.forEach(function(b) {
         if (b.type !== 'single') return;
@@ -1225,12 +1311,14 @@
      */
     function renderPrincipal() {
       var isExp = expanded === 'principal';
-      var has = S.princProt > 0;
+      var extrasProt = 0;
+      EXTRAS.forEach(function(ex) { if (S.princExtras && S.princExtras[ex.id]) extrasProt += ex.protein; });
+      var totalPrinc = (S.princProt || 0) + extrasProt;
+      var has = totalPrinc > 0;
 
       var div = document.createElement('div');
       div.className = 'block' + (has ? ' activo' : '');
 
-      // — Cabecera del bloque —
       var hdr = document.createElement('div');
       hdr.className = 'blk-hdr';
 
@@ -1259,7 +1347,7 @@
       var sub = document.createElement('div');
       if (has && !isExp) {
         sub.className = 'blk-sel';
-        sub.textContent = '✓ ' + S.princType + ' · ~' + S.princProt + 'g estimados';
+        sub.textContent = '✓ ' + (S.princType || 'Personalizado') + ' · ~' + totalPrinc + 'g estimados';
       } else {
         sub.className = 'blk-sub';
         sub.textContent = 'Con tu pareja · lo que tengáis planeado';
@@ -1272,7 +1360,7 @@
       if (has) {
         var badge = document.createElement('span');
         badge.className = 'badge';
-        badge.textContent = '+' + S.princProt + 'g';
+        badge.textContent = '+' + totalPrinc + 'g';
         right.appendChild(badge);
       }
 
@@ -1285,27 +1373,24 @@
       hdr.appendChild(info);
       hdr.appendChild(right);
 
-      // Evento de toque/clic con delegación segura para iOS
       hdr.addEventListener('click', function(e) {
         e.stopPropagation();
         expanded = expanded === 'principal' ? null : 'principal';
-        // Defer render al siguiente frame para que iOS termine el evento actual
         requestAnimationFrame(render);
       });
 
       div.appendChild(hdr);
 
-      // — Panel expandido —
       if (isExp) {
         var inn = document.createElement('div');
         inn.className = 'principal-inner';
 
         var desc = document.createElement('div');
         desc.className = 'principal-desc';
-        desc.textContent = 'Elige el tipo de proteína y ajusta la cantidad estimada.';
+        desc.textContent = 'Elige el tipo de proteína, ajusta el slider y añade extras opcionales.';
         inn.appendChild(desc);
 
-        // Grid de tipos de proteína
+        // Grid tipos proteína
         var grid = document.createElement('div');
         grid.className = 'ptype-grid';
 
@@ -1313,7 +1398,6 @@
           var btn = document.createElement('div');
           btn.className = 'ptype-btn' + (S.princType === pt.label ? ' on' : '');
           btn.textContent = pt.label;
-          // addEventListener en lugar de onclick para compatibilidad iOS
           btn.addEventListener('click', function(e) {
             e.stopPropagation();
             S.princType = pt.label;
@@ -1327,10 +1411,10 @@
         });
         inn.appendChild(grid);
 
-        // Slider de proteína
+        // Slider proteína — max 50
         var sliderLbl = document.createElement('div');
         sliderLbl.className = 'slider-label';
-        sliderLbl.textContent = 'Ajusta la proteína estimada:';
+        sliderLbl.textContent = 'Ajusta la proteína estimada del plato:';
         inn.appendChild(sliderLbl);
 
         var sliderRow = document.createElement('div');
@@ -1339,7 +1423,7 @@
         var slider = document.createElement('input');
         slider.type = 'range';
         slider.min = '10';
-        slider.max = '65';
+        slider.max = '50';
         slider.step = '1';
         slider.value = S.princProt || 30;
 
@@ -1353,7 +1437,6 @@
         valBox.appendChild(valNum);
         valBox.appendChild(valUnit);
 
-        // Evento input del slider — NO re-renderiza, solo actualiza valores
         slider.addEventListener('input', function() {
           S.princProt = parseInt(slider.value);
           S.princKcal = Math.round(S.princProt * 11);
@@ -1367,6 +1450,69 @@
         sliderRow.appendChild(valBox);
         inn.appendChild(sliderRow);
 
+        // Extras opcionales
+        var extrasLbl = document.createElement('div');
+        extrasLbl.className = 'slider-label';
+        extrasLbl.style.marginTop = '14px';
+        extrasLbl.textContent = 'Añade extras a la comida:';
+        inn.appendChild(extrasLbl);
+
+        var filteredExtras = EXTRAS.filter(function(ex) {
+          if (S.superFilter === 'MA') return true;
+          return ex.super === S.superFilter || ex.super === 'MA';
+        });
+
+        filteredExtras.forEach(function(ex) {
+          var isOn = S.princExtras && S.princExtras[ex.id];
+          var exRow = document.createElement('div');
+          exRow.className = 'opt' + (isOn ? ' sel' : '');
+          exRow.style.marginBottom = '5px';
+
+          var chk = document.createElement('div');
+          chk.className = 'radio' + (isOn ? ' on' : '');
+          chk.style.borderRadius = '3px';
+          chk.textContent = isOn ? '✓' : '';
+
+          var exBody = document.createElement('div');
+          exBody.className = 'opt-body';
+
+          var exName = document.createElement('div');
+          exName.className = 'opt-name' + (isOn ? ' sel' : '');
+          exName.textContent = ex.name;
+
+          exBody.appendChild(exName);
+
+          var exNums = document.createElement('div');
+          exNums.className = 'opt-nums';
+          var exProt = document.createElement('div');
+          exProt.className = 'opt-prot' + (isOn ? ' sel' : '');
+          exProt.textContent = '+' + ex.protein + 'g';
+          var exKcal = document.createElement('div');
+          exKcal.className = 'opt-kcal';
+          exKcal.textContent = ex.kcal + ' kcal';
+          exNums.appendChild(exProt);
+          exNums.appendChild(exKcal);
+
+          exRow.appendChild(chk);
+          exRow.appendChild(exBody);
+          exRow.appendChild(exNums);
+
+          exRow.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (!S.princExtras) S.princExtras = {};
+            if (S.princExtras[ex.id]) {
+              delete S.princExtras[ex.id];
+            } else {
+              S.princExtras[ex.id] = true;
+            }
+            save();
+            update();
+            requestAnimationFrame(render);
+          });
+
+          inn.appendChild(exRow);
+        });
+
         div.appendChild(inn);
       }
 
@@ -1379,13 +1525,18 @@
      */
     function renderBlock(b) {
       var sel = S.selections[b.id];
+      // Filtrar opciones según supermercado activo
+      var visibleOpts = b.options.filter(function(o) {
+        if (S.superFilter === 'MA') return true;
+        return o.super === S.superFilter || o.super === 'MA';
+      });
+      // Si la opción seleccionada no está visible, mantenerla igualmente
       var selOpt = sel ? b.options.find(function(o) { return o.id === sel; }) : null;
       var isExp = expanded === b.id;
 
       var div = document.createElement('div');
       div.className = 'block' + (selOpt ? ' activo' : '');
 
-      // — Cabecera —
       var hdr = document.createElement('div');
       hdr.className = 'blk-hdr';
 
@@ -1441,7 +1592,6 @@
       hdr.appendChild(info);
       hdr.appendChild(right);
 
-      // Evento — usar addEventListener + requestAnimationFrame para iOS
       hdr.addEventListener('click', function(e) {
         e.stopPropagation();
         expanded = expanded === b.id ? null : b.id;
@@ -1450,7 +1600,6 @@
 
       div.appendChild(hdr);
 
-      // — Panel de opciones (si está expandido) —
       if (isExp) {
         var panel = document.createElement('div');
         panel.className = 'opts-panel';
@@ -1460,23 +1609,30 @@
         descEl.textContent = b.desc;
         panel.appendChild(descEl);
 
-        b.options.forEach(function(opt) {
+        visibleOpts.forEach(function(opt) {
           var isSel = sel === opt.id;
           var od = document.createElement('div');
           od.className = 'opt' + (isSel ? ' sel' : '');
 
-          // Radio visual
           var radio = document.createElement('div');
           radio.className = 'radio' + (isSel ? ' on' : '');
           radio.textContent = isSel ? '✓' : '';
 
-          // Cuerpo (nombre + tip)
           var body = document.createElement('div');
           body.className = 'opt-body';
 
           var optName = document.createElement('div');
           optName.className = 'opt-name' + (isSel ? ' sel' : '');
-          optName.textContent = opt.name;
+
+          // Nombre + badge supermercado
+          var nameText = document.createTextNode(opt.name + ' ');
+          optName.appendChild(nameText);
+          if (S.superFilter === 'MA' && opt.super !== 'MA') {
+            var sBadge = document.createElement('span');
+            sBadge.className = 'super-badge super-' + opt.super.toLowerCase();
+            sBadge.textContent = opt.super;
+            optName.appendChild(sBadge);
+          }
 
           var optTip = document.createElement('div');
           optTip.className = 'opt-tip';
@@ -1485,7 +1641,6 @@
           body.appendChild(optName);
           body.appendChild(optTip);
 
-          // Números (proteína + kcal)
           var nums = document.createElement('div');
           nums.className = 'opt-nums';
 
@@ -1504,7 +1659,6 @@
           od.appendChild(body);
           od.appendChild(nums);
 
-          // Evento de selección — toggle si ya está seleccionado
           od.addEventListener('click', function(e) {
             e.stopPropagation();
             if (S.selections[b.id] === opt.id) {
@@ -1519,6 +1673,15 @@
 
           panel.appendChild(od);
         });
+
+        // Nota si hay opciones ocultas por filtro
+        var hidden = b.options.length - visibleOpts.length;
+        if (hidden > 0) {
+          var hideNote = document.createElement('div');
+          hideNote.style.cssText = 'font-size:10px;color:#64748b;text-align:center;padding:4px 0;';
+          hideNote.textContent = hidden + ' opción' + (hidden > 1 ? 'es' : '') + ' oculta' + (hidden > 1 ? 's' : '') + ' · cambia el filtro para verla' + (hidden > 1 ? 's' : '');
+          panel.appendChild(hideNote);
+        }
 
         div.appendChild(panel);
       }
@@ -1535,10 +1698,14 @@
       var wrap = document.getElementById('blocksWrap');
       if (!wrap) return;
 
-      // Vaciar contenedor
+      // Sincronizar toggle visual con estado
+      ['M', 'MA', 'A'].forEach(function(k) {
+        var btn = document.getElementById('stBtn-' + k);
+        if (btn) btn.className = 'stoggle-btn' + (k === S.superFilter ? ' active' : '');
+      });
+
       wrap.innerHTML = '';
 
-      // Crear cada bloque con createElement (nunca innerHTML con onclick)
       BLOCKS.forEach(function(b) {
         if (b.type === 'principal') {
           wrap.appendChild(renderPrincipal());
@@ -1549,7 +1716,24 @@
     }
 
     // ============================================================
-    // === DOBLE TOQUE EN TÍTULO PARA RESETEAR ===
+    // === FILTRO SUPERMERCADO ===
+    // ============================================================
+    function setFilter(f) {
+      S.superFilter = f;
+      save();
+      // Actualizar estado visual botones
+      ['M', 'MA', 'A'].forEach(function(k) {
+        var btn = document.getElementById('stBtn-' + k);
+        if (btn) {
+          btn.className = 'stoggle-btn' + (k === f ? ' active' : '');
+        }
+      });
+      render();
+    }
+
+    document.getElementById('stBtn-M').addEventListener('click', function() { setFilter('M'); });
+    document.getElementById('stBtn-MA').addEventListener('click', function() { setFilter('MA'); });
+    document.getElementById('stBtn-A').addEventListener('click', function() { setFilter('A'); });
     // ============================================================
 
     /**
